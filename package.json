@@ -1,0 +1,22 @@
+{
+	"name": "counters",
+	"description": "A simple node.js app to track referrers.",
+	"author": "Dave Winer <dave@scripting.com>",
+	"version": "0.5.0",
+	"scripts": {
+		"start": "node counters.js"
+		},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/scripting/counters.git"
+		},
+	"dependencies" : {
+		"daveutils": "*",
+		"davehttp": "*",
+		"daves3": "*"
+		}, 
+	"license": "MIT",
+	"engines": {
+		"node": "*"
+		}
+	}

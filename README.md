@@ -1,2 +1,4 @@
-# counters
-A simple node.js app to track referrers.
+## couinters
+
+A simple Node app to track referrers.
+
