@@ -1,4 +1,4 @@
-var myVersion = "0.5.0", myProductName = "counters";
+var myVersion = "0.5.2", myProductName = "counters";
 
 const fs = require ("fs");
 const davehttp = require ("davehttp");
@@ -22,11 +22,11 @@ var stats = {
 	whenLastLaunch: new Date (),
 	whenLastHit: new Date (0),
 	whenLastSave: new Date (0),
+	product: myProductName + " v" + myVersion, //11/17/19 by DW
 	referrers: [],
 	pages: []
 	};
 var flStatsChanged = false;
-
 
 function statsChanged () {
 	flStatsChanged = true;
@@ -36,6 +36,7 @@ function saveStats () {
 	var s3ArchivePath = config.s3Path + utils.getDatePath (undefined, false) + ".json";
 	stats.ctSaves++;
 	stats.whenLastSave = new Date ();
+	stats.product = myProductName + " v" + myVersion;
 	var jsontext = utils.jsonStringify (stats);
 	function save (s3Path) {
 		s3.newObject (s3Path, jsontext, "application/json", "public-read", function (err, data) {
@@ -136,6 +137,7 @@ function readStats (callback) {
 function everyMinute () {
 	var now = new Date ();
 	if (!utils.sameDay (stats.whenLastDayRollover, now)) { //date rollover
+		console.log ("everyMinute: day rollover.");
 		stats.ctDayRollovers++;
 		stats.whenLastDayRollover = now;
 		stats.ctHitsToday = 0;
