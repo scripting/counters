@@ -1,6 +1,6 @@
 {
 	"name": "counters",
-	"description": "A simple node.js app to track referrers.",
+	"description": "A simple Node app to track hits and referrers.",
 	"author": "Dave Winer <dave@scripting.com>",
 	"version": "0.5.7",
 	"scripts": {
