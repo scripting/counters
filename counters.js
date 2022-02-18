@@ -1,4 +1,4 @@
-var myVersion = "0.5.7", myProductName = "counters";
+var myVersion = "0.5.8", myProductName = "counters";
 
 const fs = require ("fs");
 const request = require ("request");
@@ -7,7 +7,7 @@ const s3 = require ("daves3");
 const utils = require ("daveutils");
 
 var config = {
-	port: 1962,
+	port: process.env.PORT || 1420,
 	flLogToConsole: true,
 	flAllowAccessFromAnywhere: true, //12/17/19 by DW
 	s3Path: "/static.scripting.com/counters/scripting/",
@@ -77,68 +77,48 @@ function derefUrl (urlOrig, callback) {
 			}
 		});
 	}
-function securityCheck (url) { //2/25/20 by DW
+function removeOauthParams (url) { //2/17/22 by DW
+	var baseurl = utils.stringNthField (url, "?", 1);
 	var params = utils.stringNthField (url, "?", 2);
-	var splits = params.split ("&");
-	var flproblem = false;
-	splits.forEach (function (param) {
-		if (utils.beginsWith (param, "oauth_token")) {
-			flproblem = true;
+	if (params.length == 0) {
+		return (url);
+		}
+	else {
+		var splits = params.split ("&"), newparams = "";
+		splits.forEach (function (param) {
+			if (!utils.beginsWith (param, "oauth_token")) {
+				newparams += param + "&";
+				}
+			});
+		if (newparams.length == 0) {
+			return (baseurl);
 			}
-		if (utils.beginsWith (param, "oauth_token_secret")) {
-			flproblem = true;
+		else {
+			return (baseurl + "?" + utils.stringDelete (newparams, newparams.length, 1));
 			}
-		});
-	return (!flproblem);
+		}
 	}
 function count (group, referOrig, url, callback) {
-	if (securityCheck (referOrig) && securityCheck (url)) {
-		derefUrl (referOrig, function (err, referer) {
-			var flnotfound;
-			//referrers
-				if (referer.length > 0) {
-					flnotfound = true;
-					stats.referrers.forEach (function (item) {
-						if (item.url == referer) {
-							item.ct++;
-							flnotfound = false;
-							}
-						});
-					if (flnotfound) {
-						stats.referrers.push ({
-							ct: 1,
-							url: referer
-							});
-						}
-					stats.referrers.sort (function (a, b) {
-						if (b.ct < a.ct) {
-							return (-1);
-							}
-						else {
-							if (a.ct < b.ct) {
-								return (1)
-								}
-							else {
-								return (0);
-								}
-							}
-						});
-					}
-			//pages
+	referOrig = removeOauthParams (referOrig);
+	url = removeOauthParams (url);
+	derefUrl (referOrig, function (err, referer) {
+		var flnotfound;
+		//referrers
+			if (referer.length > 0) {
 				flnotfound = true;
-				stats.pages.forEach (function (item) {
-					if (item.url == url) {
+				stats.referrers.forEach (function (item) {
+					if (item.url == referer) {
 						item.ct++;
 						flnotfound = false;
 						}
 					});
 				if (flnotfound) {
-					stats.pages.push ({
+					stats.referrers.push ({
 						ct: 1,
-						url: url
+						url: referer
 						});
 					}
-				stats.pages.sort (function (a, b) {
+				stats.referrers.sort (function (a, b) {
 					if (b.ct < a.ct) {
 						return (-1);
 						}
@@ -151,10 +131,37 @@ function count (group, referOrig, url, callback) {
 							}
 						}
 					});
-			statsChanged ();
-			callback (undefined, "We got your ping on " + new Date ().toLocaleString ());
-			});
-		}
+				}
+		//pages
+			flnotfound = true;
+			stats.pages.forEach (function (item) {
+				if (item.url == url) {
+					item.ct++;
+					flnotfound = false;
+					}
+				});
+			if (flnotfound) {
+				stats.pages.push ({
+					ct: 1,
+					url: url
+					});
+				}
+			stats.pages.sort (function (a, b) {
+				if (b.ct < a.ct) {
+					return (-1);
+					}
+				else {
+					if (a.ct < b.ct) {
+						return (1)
+						}
+					else {
+						return (0);
+						}
+					}
+				});
+		statsChanged ();
+		});
+	callback (undefined, "We got your ping on " + new Date ().toUTCString ());
 	}
 function readStats (callback) {
 	utils.sureFilePath (config.fnameStats, function () {

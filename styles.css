@@ -1,0 +1,71 @@
+body {
+	background-color: whitesmoke;
+	}
+.divCountsContainer {
+	width: 50%;
+	margin-top: 30px;
+	margin-left: auto;
+	margin-right: auto;
+	margin-bottom: 250px;
+	}
+.divCountsContainer td {
+	font-family: Arial; 
+	font-size: 16px; 
+	line-height: 160%;
+	}
+.divCountsContainer .tdCt {
+	text-align: right;
+	}
+.tableCounts {
+	border:1px solid gainsboro;
+	}
+h1 {
+	margin-top: 25px;
+	margin-bottom: 25px;
+	}
+.divCommands {
+	font-size: 18px;
+	font-weight: bold;
+	height: 3em;
+	margin-bottom: 20px;
+	}
+.ulNavbar {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	}
+.ulNavbar a {
+	display: block;
+	cursor: pointer;
+	}
+.ulNavbar li {
+	display: inline;
+	float: left;
+	margin-right: 1em;
+	}
+
+.divStringLabMessage {
+	width: 500px;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 400px;
+	}
+.divSpinContainer {
+	width: 100px;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 400px;
+	background-color: white;
+	}
+
+.divPlayerDemo {
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 100px;
+	width: 600px;
+	}
+.divPlayerDemo h1 {
+	font-family: Rancho;
+	font-size: 64px;
+	margin-bottom: 40px;
+	}

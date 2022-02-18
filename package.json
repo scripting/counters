@@ -2,7 +2,8 @@
 	"name": "counters",
 	"description": "A simple Node app to track hits and referrers.",
 	"author": "Dave Winer <dave@scripting.com>",
-	"version": "0.5.7",
+	"version": "0.5.8",
+	"main": "counters.js",
 	"scripts": {
 		"start": "node counters.js"
 		},
