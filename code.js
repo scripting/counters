@@ -73,74 +73,96 @@ function formatDate (theDate, dateformat, timezone) {
 		return (new Date (theDate).strftime (dateformat));
 		}
 	}
-function viewTodaysHits (groupname) {
-	var urlCounterServer = "http://counter2.fargo.io:5337/getTodaysHits";
-	
-	if (groupname == undefined) {
-		groupname = myGroupName;
-		}
-	
-	var jxhr = $.ajax ({
-		url: urlCounterServer + "?group=" + encodeURIComponent (groupname),
-		dataType: "jsonp",
-		jsonpCallback : "getData",
-		timeout: 30000
-		})
-	.success (function (data, status, xhr) {
-		var s = "";
-		
-		countersdata = data;
-		
-		if (countersdata.whenLastUpdate != whenLastUpdate) {
-			var ix = whichArrayToDisplay.toLowerCase ();
+
+function httpRequest (url, callback) {
+	var timeout = 3000;
+	var headers = new Object ();
+	var jxhr = $.ajax ({ 
+		url: url,
+		dataType: "text", 
+		headers,
+		timeout
+		}) 
+	.success (function (data, status) { 
+		callback (undefined, data);
+		}) 
+	.error (function (status) { 
+		var message;
+		try { //9/18/21 by DW
+			message = JSON.parse (status.responseText).message;
+			}
+		catch (err) {
+			message = status.responseText;
+			}
+		if ((message === undefined) || (message.length == 0)) { //7/22/22 by DW & 8/31/22 by DW
+			message = "There was an error communicating with the server.";
+			}
+		var err = {
+			code: status.status,
+			message
+			};
+		callback (err);
+		});
+	}
+function viewTodaysHits (groupname="scripting") {
+	var url = "http://static.scripting.com/counters/" + groupname + "/today.json";
+	httpRequest (url, function (err, jsontext) {
+		if (err) {
+			console.log (err.message);
+			}
+		else {
+			var s = "";
 			
-			countersdata [ix].sort (function (a, b) {
-				if (b.ct < a.ct) {
-					return (-1);
-					}
-				else {
-					if (a.ct < b.ct) {
-						return (1)
+			var countersdata = JSON.parse (jsontext);;
+			
+			if (countersdata.whenLastUpdate != whenLastUpdate) {
+				var ix = whichArrayToDisplay.toLowerCase ();
+				
+				countersdata [ix].sort (function (a, b) {
+					if (b.ct < a.ct) {
+						return (-1);
 						}
 					else {
-						return (0);
+						if (a.ct < b.ct) {
+							return (1)
+							}
+						else {
+							return (0);
+							}
 						}
-					}
-				});
-			for (var i = 0; i < countersdata [ix].length; i++) {
-				var x = countersdata [ix] [i], urlForDisplay = x.url;
-				if (securityCheck (x.url)) {
-					if (okDomain (x.url)) { //11/27/20 by DW
-						if (urlForDisplay != undefined) {
-							if (looksLikeUrl (x.url)) { //12/31/19 by DW
-								urlForDisplay = processTitleParam (urlForDisplay); //1/6/20 by DW
-								if (urlForDisplay.length > maxUrlLenForDisplay) {
-									urlForDisplay = stringMid (urlForDisplay, 1, maxUrlLenForDisplay) + "...";
+					});
+				for (var i = 0; i < countersdata [ix].length; i++) {
+					var x = countersdata [ix] [i], urlForDisplay = x.url;
+					if (securityCheck (x.url)) {
+						if (okDomain (x.url)) { //11/27/20 by DW
+							if (urlForDisplay != undefined) {
+								if (looksLikeUrl (x.url)) { //12/31/19 by DW
+									urlForDisplay = processTitleParam (urlForDisplay); //1/6/20 by DW
+									if (urlForDisplay.length > maxUrlLenForDisplay) {
+										urlForDisplay = stringMid (urlForDisplay, 1, maxUrlLenForDisplay) + "...";
+										}
+									s += "<tr><td><a href=\"" + x.url + "\">" + urlForDisplay + "</a></td><td class=\"tdCt\">&nbsp;" + x.ct + "</td></tr>";
 									}
-								s += "<tr><td><a href=\"" + x.url + "\">" + urlForDisplay + "</a></td><td class=\"tdCt\">&nbsp;" + x.ct + "</td></tr>";
 								}
 							}
 						}
 					}
+				
+				document.getElementById ("idCountsContainer").innerHTML = "<table class=\"table table-striped tableCounts\">" + s + "</table>";
+				document.getElementById ("idTitle").innerHTML = whichArrayToDisplay + " list for <i>" + groupname + "</i> group";
+				
+				//last update display
+					var d = new Date (countersdata.whenLastHit);
+					document.getElementById ("idWhenLastUpdate").innerHTML = "<b>Last update</b>: " + formatDate (d, "%A, %B %e, %Y at %l:%M %p", "-5") + ".";
+				
+				whenLastUpdate = countersdata.whenLastUpdate;
+				
+				ctUpdates++;
 				}
 			
-			document.getElementById ("idCountsContainer").innerHTML = "<table class=\"table table-striped tableCounts\">" + s + "</table>";
-			document.getElementById ("idTitle").innerHTML = whichArrayToDisplay + " list for <i>" + groupname + "</i> group";
+			document.getElementById ("idCtChecks").innerHTML = ctUpdates + " / " + ++ctChecks;
 			
-			//last update display
-				var d = new Date (countersdata.whenLastHit);
-				document.getElementById ("idWhenLastUpdate").innerHTML = "<b>Last update</b>: " + formatDate (d, "%A, %B %e, %Y at %l:%M %p", "-5") + ".";
-			
-			whenLastUpdate = countersdata.whenLastUpdate;
-			
-			ctUpdates++;
 			}
-		
-		document.getElementById ("idCtChecks").innerHTML = ctUpdates + " / " + ++ctChecks;
-		
-		})
-	.error (function (status, textStatus, errorThrown) {
-		console.log ("viewTodaysHits error: " + textStatus);
 		});
 	}
 function setGroup (groupname) {

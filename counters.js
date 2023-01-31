@@ -1,4 +1,4 @@
-var myVersion = "0.5.8", myProductName = "counters";
+var myVersion = "0.5.8", myProductName = "counters"; 
 
 const fs = require ("fs");
 const request = require ("request");
@@ -7,7 +7,7 @@ const s3 = require ("daves3");
 const utils = require ("daveutils");
 
 var config = {
-	port: process.env.PORT || 1420,
+	port: process.env.PORT || 1424,
 	flLogToConsole: true,
 	flAllowAccessFromAnywhere: true, //12/17/19 by DW
 	s3Path: "/static.scripting.com/counters/scripting/",
@@ -259,7 +259,7 @@ readStats (function () {
 			case "/now":
 				returnPlainText (new Date ());
 				return;
-			case "/counter":
+			case "/counter": case "/hello": //1/30/23 by DW
 				count (params.group, params.referer, params.url, httpReturn);
 				return;
 			}
