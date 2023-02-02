@@ -105,7 +105,7 @@ function httpRequest (url, callback) {
 		});
 	}
 function viewTodaysHits (groupname="scripting") {
-	var url = "http://static.scripting.com/counters/" + groupname + "/today.json";
+	var url = "//s3.amazonaws.com/static.scripting.com/counters/" + groupname + "/today.json";
 	httpRequest (url, function (err, jsontext) {
 		if (err) {
 			console.log (err.message);
