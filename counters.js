@@ -1,4 +1,4 @@
-var myVersion = "0.5.8", myProductName = "counters"; 
+var myVersion = "0.5.9", myProductName = "counters";
 
 const fs = require ("fs");
 const request = require ("request");
@@ -10,6 +10,7 @@ var config = {
 	port: process.env.PORT || 1424,
 	flLogToConsole: true,
 	flAllowAccessFromAnywhere: true, //12/17/19 by DW
+	flTraceOnError: false, //davehttp does not try to catch the error
 	s3Path: "/static.scripting.com/counters/scripting/",
 	fnameToday: "today.json",
 	fnameStats: "stats.json",
@@ -103,6 +104,9 @@ function count (group, referOrig, url, callback) {
 	url = removeOauthParams (url);
 	derefUrl (referOrig, function (err, referer) {
 		var flnotfound;
+		if (referer !== "") { //9/16/23 by DW
+			console.log ("count: referer == " + referer + ", url == " + url);
+			}
 		//referrers
 			if (referer.length > 0) {
 				flnotfound = true;
@@ -163,6 +167,69 @@ function count (group, referOrig, url, callback) {
 		});
 	callback (undefined, "We got your ping on " + new Date ().toUTCString ());
 	}
+
+function handleHttpRequest (theRequest) {
+	var params = theRequest.params;
+	function bumpstats () {
+		stats.ctHits++;
+		stats.ctHitsToday++;
+		stats.whenLastHit = new Date ();
+		statsChanged ();
+		}
+	function returnHtml (htmltext) {
+		theRequest.httpReturn (200, "text/html", htmltext);
+		}
+	function returnPlainText (s) {
+		theRequest.httpReturn (200, "text/plain", s.toString ());
+		}
+	function returnData (jstruct) {
+		if (jstruct === undefined) {
+			jstruct = {};
+			}
+		theRequest.httpReturn (200, "application/json", utils.jsonStringify (jstruct));
+		}
+	function returnError (jstruct) {
+		theRequest.httpReturn (500, "application/json", utils.jsonStringify (jstruct));
+		}
+	function httpReturn (err, jstruct) {
+		if (err) {
+			returnError (err);
+			}
+		else {
+			returnData (jstruct);
+			}
+		}
+	function returnServerHomePage () {
+		request (config.urlServerHomePageSource, function (error, response, templatetext) {
+			if (!error && response.statusCode == 200) {
+				var pagetable = {
+					version: myVersion
+					};
+				var pagetext = utils.multipleReplaceAll (templatetext, pagetable, false, "[%", "%]");
+				returnHtml (pagetext);
+				}
+			});
+		}
+	switch (theRequest.lowerpath) {
+		case "/":
+			returnServerHomePage ();
+			return (true);
+		case "/version":
+			returnPlainText (myVersion);
+			return (true);
+		case "/now":
+			returnPlainText (new Date ());
+			return (true);
+		case "/counter": case "/hello": //1/30/23 by DW
+			count (params.group, params.referer, params.url, httpReturn);
+			return (true);
+		default: 
+			theRequest.httpReturn (404, "text/plain", "Not found.");
+			return (true);
+		}
+	bumpstats ();
+	}
+
 function readStats (callback) {
 	utils.sureFilePath (config.fnameStats, function () {
 		fs.readFile (config.fnameStats, function (err, data) {
@@ -209,62 +276,7 @@ readStats (function () {
 	stats.ctLaunches++;
 	stats.whenLastLaunch = new Date ();
 	statsChanged ();
-	davehttp.start (config, function (theRequest) {
-		var params = theRequest.params;
-		stats.ctHits++;
-		stats.ctHitsToday++;
-		stats.whenLastHit = new Date ();
-		statsChanged ();
-		function returnHtml (htmltext) {
-			theRequest.httpReturn (200, "text/html", htmltext);
-			}
-		function returnPlainText (s) {
-			theRequest.httpReturn (200, "text/plain", s.toString ());
-			}
-		function returnData (jstruct) {
-			if (jstruct === undefined) {
-				jstruct = {};
-				}
-			theRequest.httpReturn (200, "application/json", utils.jsonStringify (jstruct));
-			}
-		function returnError (jstruct) {
-			theRequest.httpReturn (500, "application/json", utils.jsonStringify (jstruct));
-			}
-		function httpReturn (err, jstruct) {
-			if (err) {
-				returnError (err);
-				}
-			else {
-				returnData (jstruct);
-				}
-			}
-		function returnServerHomePage () {
-			request (config.urlServerHomePageSource, function (error, response, templatetext) {
-				if (!error && response.statusCode == 200) {
-					var pagetable = {
-						version: myVersion
-						};
-					var pagetext = utils.multipleReplaceAll (templatetext, pagetable, false, "[%", "%]");
-					returnHtml (pagetext);
-					}
-				});
-			}
-		switch (theRequest.lowerpath) {
-			case "/":
-				returnServerHomePage ();
-				return;
-			case "/version":
-				returnPlainText (myVersion);
-				return;
-			case "/now":
-				returnPlainText (new Date ());
-				return;
-			case "/counter": case "/hello": //1/30/23 by DW
-				count (params.group, params.referer, params.url, httpReturn);
-				return;
-			}
-		theRequest.httpReturn (404, "text/plain", "Not found.");
-		});
+	davehttp.start (config, handleHttpRequest);
 	setInterval (everySecond, 1000); 
 	utils.runEveryMinute (everyMinute);
 	});

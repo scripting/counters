@@ -1,4 +1,4 @@
-const blockedDomains = ["w6az.com", "oldschool.scripting.com"]; //11/27/20 by DW
+const blockedDomains = ["w6az.com", "oldschool.scripting.com", "brandontoner.ca"]; //11/27/20 by DW
 
 var countersdata;
 
@@ -10,6 +10,14 @@ var whichArrayToDisplay = "Pages";
 
 var whenLastUpdate = "", ctUpdates = 0, ctChecks = 0;
 
+function decodeUriComponent (theComponent) { //4/20/23 by DW
+	try { //4/20/23 by DW
+		return (decodeURIComponent (theComponent));
+		}
+	catch (err) {
+		return (theComponent);
+		}
+	}
 
 function looksLikeUrl (s) { //12/31/19 by DW
 	s = s.toLowerCase ();
@@ -26,7 +34,7 @@ function processTitleParam (url) { //1/6/20 by DW
 			}
 		var title = getparam ("title");
 		if (title != "null") {
-			return (decodeURIComponent (title));
+			return (decodeUriComponent (title)); //4/20/23 by DW
 			}
 		}
 	return (url);
