@@ -79,23 +79,25 @@ function derefUrl (urlOrig, callback) {
 		});
 	}
 function removeOauthParams (url) { //2/17/22 by DW
-	var baseurl = utils.stringNthField (url, "?", 1);
-	var params = utils.stringNthField (url, "?", 2);
-	if (params.length == 0) {
-		return (url);
-		}
-	else {
-		var splits = params.split ("&"), newparams = "";
-		splits.forEach (function (param) {
-			if (!utils.beginsWith (param, "oauth_token")) {
-				newparams += param + "&";
-				}
-			});
-		if (newparams.length == 0) {
-			return (baseurl);
+	if (url !== undefined) {
+		var baseurl = utils.stringNthField (url, "?", 1);
+		var params = utils.stringNthField (url, "?", 2);
+		if (params.length == 0) {
+			return (url);
 			}
 		else {
-			return (baseurl + "?" + utils.stringDelete (newparams, newparams.length, 1));
+			var splits = params.split ("&"), newparams = "";
+			splits.forEach (function (param) {
+				if (!utils.beginsWith (param, "oauth_token")) {
+					newparams += param + "&";
+					}
+				});
+			if (newparams.length == 0) {
+				return (baseurl);
+				}
+			else {
+				return (baseurl + "?" + utils.stringDelete (newparams, newparams.length, 1));
+				}
 			}
 		}
 	}
@@ -104,11 +106,12 @@ function count (group, referOrig, url, callback) {
 	url = removeOauthParams (url);
 	derefUrl (referOrig, function (err, referer) {
 		var flnotfound;
-		if (referer !== "") { //9/16/23 by DW
-			console.log ("count: referer == " + referer + ", url == " + url);
-			}
 		//referrers
+			if (referer === undefined) { //9/20/23 by DW
+				referer = "";
+				}
 			if (referer.length > 0) {
+				console.log ("count: referer == " + referer + ", url == " + url); //9/16/23 by DW
 				flnotfound = true;
 				stats.referrers.forEach (function (item) {
 					if (item.url == referer) {

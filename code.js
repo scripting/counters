@@ -40,19 +40,21 @@ function processTitleParam (url) { //1/6/20 by DW
 	return (url);
 	}
 function securityCheck (url) { //2/25/20 by DW
-	var params = stringNthField (url, "?", 2);
-	var splits = params.split ("&");
 	var flproblem = false;
-	splits.forEach (function (param) {
-		if (beginsWith (param, "oauth_token")) {
-			flproblem = true;
+	if (url !== undefined) {
+		var params = stringNthField (url, "?", 2);
+		var splits = params.split ("&");
+		splits.forEach (function (param) {
+			if (beginsWith (param, "oauth_token")) {
+				flproblem = true;
+				}
+			if (beginsWith (param, "oauth_token_secret")) {
+				flproblem = true;
+				}
+			});
+		if (flproblem) {
+			console.log (url);
 			}
-		if (beginsWith (param, "oauth_token_secret")) {
-			flproblem = true;
-			}
-		});
-	if (flproblem) {
-		console.log (url);
 		}
 	return (!flproblem);
 	}
