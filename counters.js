@@ -1,4 +1,4 @@
-var myVersion = "0.5.9", myProductName = "counters";
+var myVersion = "0.5.9", myProductName = "counters"; 
 
 const fs = require ("fs");
 const request = require ("request");
@@ -48,6 +48,7 @@ function saveStats () {
 				console.log ("saveStats: s3path == " + s3path + ", err.message == " + err.message);
 				}
 			else {
+				console.log ("saveStats: s3Path == " + s3Path);
 				}
 			});
 		}
@@ -103,6 +104,7 @@ function removeOauthParams (url) { //2/17/22 by DW
 	}
 function count (group, referOrig, url, callback) {
 	referOrig = removeOauthParams (referOrig);
+	console.log ("count: group == " + group + ", url == " + url); //9/24/23 by DW
 	url = removeOauthParams (url);
 	derefUrl (referOrig, function (err, referer) {
 		var flnotfound;
@@ -213,6 +215,7 @@ function handleHttpRequest (theRequest) {
 				}
 			});
 		}
+	bumpstats ();
 	switch (theRequest.lowerpath) {
 		case "/":
 			returnServerHomePage ();
@@ -230,7 +233,6 @@ function handleHttpRequest (theRequest) {
 			theRequest.httpReturn (404, "text/plain", "Not found.");
 			return (true);
 		}
-	bumpstats ();
 	}
 
 function readStats (callback) {

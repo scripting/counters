@@ -1,4 +1,4 @@
-const blockedDomains = ["w6az.com", "oldschool.scripting.com", "brandontoner.ca"]; //11/27/20 by DW
+const blockedDomains = ["w6az.com", "oldschool.scripting.com", "brandontoner.ca", "info.frankmcpherson.net"]; //11/27/20 by DW
 
 var countersdata;
 
